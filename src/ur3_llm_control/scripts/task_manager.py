@@ -2,6 +2,7 @@
 """Interactive or ROS-topic entry point for validated LLM tasks."""
 import argparse
 import json
+import re
 import threading
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
@@ -9,7 +10,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from ur3_llm_control.srv import GetWorldState
 from llm_planner import LLMPlanner, PlannerError
-from task_validator import validate, student_mapping, ValidationError
+from task_validator import validate, student_mapping, plan_student_rearrangement, ValidationError
 from skill_executor import SkillExecutor, SkillExecutionError
 
 
@@ -54,11 +55,23 @@ class TaskManager(Node):
         print(f"USER COMMAND:\n{command}")
         try:
             state = self.world_state()
-            wants_student = "student id" in command.lower() or "mssv" in command.lower()
-            mapping = student_mapping() if wants_student else None
-            if self.planner is None:
-                self.planner = LLMPlanner()
-            document = self.planner.generate_plan(command, state, mapping)
+            suffix = command.strip() if re.fullmatch(r"[0-9]{2}", command.strip()) else None
+            wants_student = suffix is not None or "student id" in command.lower() or "mssv" in command.lower()
+            mapping = student_mapping(suffix=suffix) if wants_student else None
+            locations = state["locations"]
+            occupied = set(locations.values())
+            rearranging = mapping is not None and (
+                {"zone_a", "zone_b", "zone_c"} <= occupied or "buffer" in occupied
+            )
+            if rearranging:
+                document = plan_student_rearrangement(state, mapping)
+                if not document["plan"]:
+                    print("\nTASK ALREADY COMPLETE: cubes are in their assigned zones")
+                    return
+            else:
+                if self.planner is None:
+                    self.planner = LLMPlanner()
+                document = self.planner.generate_plan(command, state, mapping)
             steps = validate(document, state)
             if mapping is not None:
                 desired = {zone: obj for zone, obj in mapping.items()}
@@ -68,7 +81,7 @@ class TaskManager(Node):
                         resulting[step["object"]] = step["zone"]
                 if any(resulting[obj] != zone for zone, obj in desired.items()):
                     raise ValidationError("INVALID_STUDENT_PLAN", "Plan does not satisfy student ID mapping")
-            print("\nLLM PLAN:")
+            print("\nREARRANGEMENT PLAN:" if rearranging else "\nLLM PLAN:")
             for i, step in enumerate(steps, 1):
                 arguments = ", ".join(x for x in (step["object"], step["zone"]) if x)
                 print(f"{i}. {step['skill']}({arguments})")
@@ -96,7 +109,7 @@ def main():
         else:
             while rclpy.ok():
                 try:
-                    command = input("\nEnter command:\n> ").strip()
+                    command = input("\nEnter command or last two digits of student ID (e.g. 23):\n> ").strip()
                 except (EOFError, KeyboardInterrupt):
                     break
                 if command:

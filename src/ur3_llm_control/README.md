@@ -1,14 +1,3 @@
-# UR3e LLM control — mức cơ bản
-
-Package ROS 2 Humble này chạy UR3e trong Gazebo Classic và dùng MoveIt 2 cho ba skill `pick(object)`, `place(object, zone)` và `home()`. LLM qua 9Router chỉ tạo JSON plan. `task_validator.py` kiểm tra skill, object, zone và thứ tự trước khi executor gửi yêu cầu tới robot. LLM không tạo joint trajectory.
-
-## Môi trường
-
-- Ubuntu 22.04, ROS 2 Humble, Gazebo Classic, MoveIt 2 và các package UR trong workspace hiện tại.
-- Python package `openai` cho client API tương thích OpenAI của 9Router.
-- UR3e chưa có gripper vật lý trong mô hình này. Plugin Gazebo mô phỏng thao tác giữ và thả vật; chuyển động robot vẫn do MoveIt 2 lập kế hoạch và controller Gazebo thực thi.
-- Bàn và vật có collision object trong MoveIt Planning Scene. Mặt bàn Gazebo chỉ hiển thị để tránh va chạm vật lý trùng lặp làm mất ổn định mô phỏng; MoveIt kiểm tra va chạm với bàn, các khối và vật đang giữ.
-
 ## Build
 
 ```bash
@@ -19,7 +8,6 @@ colcon build --packages-select ur3_llm_control
 source install/setup.bash
 ```
 
-Workspace được cung cấp có thư mục `install` ở `~/thuc_hanh_tuan2_ws/src`. Mỗi terminal mới cần `source /opt/ros/humble/setup.bash` và `source ~/thuc_hanh_tuan2_ws/src/install/setup.bash`.
 
 ## Cấu hình 9Router trên máy của bạn
 
@@ -75,8 +63,6 @@ source install/setup.bash
 ros2 launch ur3_llm_control llm_robot.launch.py
 ```
 
-Có thể thêm `gazebo_gui:=false launch_rviz:=false` khi chỉ kiểm tra bằng terminal. Đợi Gazebo, `move_group`, controller và `robot_skills` khởi động xong.
-
 Terminal 2, sau khi đặt hai biến 9Router ở trên:
 
 ```bash
@@ -88,24 +74,18 @@ ros2 run ur3_llm_control task_manager.py
 
 Nhập ví dụ `Put the red cube in zone B.` hoặc `Đưa vật màu đỏ sang vùng B.`. Terminal hiển thị `USER COMMAND`, `LLM PLAN`, `EXECUTION` và `TASK SUCCESS` nếu cả ba skill thành công. Câu lệnh tiếng Anh hoặc tiếng Việt được gửi nguyên văn tới LLM; chương trình không liệt kê cứng mọi câu lệnh.
 
-Nếu muốn gửi lệnh qua topic thay cho terminal tương tác, chạy launch với `start_task_manager:=true` rồi gửi:
+Để chạy nhiệm vụ theo hai chữ số cuối MSSV, nhập đúng hai chữ số tại dấu nhắc, ví dụ `23` (Zone A: Blue, Zone B: Yellow, Zone C: Red). Với MSSV `23020760` đang ghi trong `config/student_config.yaml`, nhập `60` (Zone A: Red, Zone B: Yellow, Zone C: Blue). Chương trình dùng chính hai chữ số vừa nhập để tính `P = XX % 6`; lệnh có chữ `mssv` hoặc `student id` vẫn dùng ID trong file cấu hình. Sau khi sửa mã nguồn, chạy lại `colcon build --packages-select ur3_llm_control` và `source install/setup.bash` trước khi khởi động task manager.
 
-```bash
-ros2 topic pub --once /ur3_llm_control/command std_msgs/msg/String \
-  "{data: 'Move the blue cube to zone C.'}"
-```
+Nếu cả ba zone đã có vật, chương trình dùng ô `buffer` ở giữa bàn để tạm đặt một khối, sắp xếp các khối còn lại rồi chuyển khối từ `buffer` vào zone đích. Ô `buffer` phải trống khi nhiệm vụ MSSV hoàn tất. Sau khi build lại, khởi động lại Gazebo và task manager để nạp mô hình và vị trí mới.
 
-Biến môi trường 9Router phải được đặt trong **Terminal 1** nếu dùng cách gửi qua topic.
+## Các skill của robot
 
-## Kiểm tra và giới hạn
+Ba skill mà planner được phép gọi, được nhóm cạnh nhau trong `src/robot_skills.cpp`:
 
-- Cho phép đúng `red_cube`, `yellow_cube`, `blue_cube` và `zone_a`, `zone_b`, `zone_c`.
-- Plan phải có thao tác gắp, đặt vật đang giữ và kết thúc bằng `home`. Skill hoặc tên không hợp lệ bị từ chối trước khi robot di chuyển.
-- Mỗi skill trả trạng thái như `SUCCESS`, `INVALID_OBJECT`, `INVALID_ZONE`, `PLANNING_FAILED` hoặc `EXECUTION_FAILED`. Executor dừng ở lỗi đầu tiên.
-- Vị trí cố định của robot, bàn, vật và zone nằm trong `config/scene.yaml` và `worlds/assignment2.world`; mô phỏng chưa có camera hay nhận dạng vật.
-- Bàn gỗ kích thước 0,64 × 0,84 m có ba khối đỏ, vàng, xanh. Ba ô A/B/C có đáy 0,14 × 0,14 m, bốn thành và nhãn chữ; phần trống bên trong rộng 0,12 m cho khối lập phương 0,04 m. Mô hình Gazebo dùng màu riêng, và MoveIt Planning Scene cũng có cùng màu.
-- `config/home_joints.yaml` giữ dáng dựng đứng gần mặc định, với khuỷu và cổ tay lệch khỏi góc kỳ dị. `config/staging_joints.yaml` là tư thế trung gian hướng xuống bàn. Chuyển động đi qua MoveIt, kiểm tra va chạm, giới hạn khớp, chiều cao đầu công cụ và Jacobian trước khi thực thi.
-- Gazebo dùng cơ chế gắn/thả vật ảo, còn MoveIt kiểm tra vật đang cầm ở đúng khoảng lệch so với `tool0`. Robot dừng cách đáy ô 5 mm trước khi plugin đặt vật vào tâm ô.
-- Muốn chạy lại demo từ vị trí ban đầu, dừng và khởi động lại launch.
-- Controller mô phỏng xử lý góc cổ tay tương đương nhau theo chu kỳ `2π`. Các trajectory gửi đi giữ nguyên từ MoveIt 2 và chịu giới hạn joint của robot; giá trị thô trong `/joint_states` có thể khác một vòng `2π`.
-- `config/student_config.yaml` đang để placeholder theo yêu cầu. Bài demo mức cơ bản không cần MSSV; trước khi demo nhiệm vụ cá nhân hóa, điền họ tên và MSSV thật.
+| Skill | Tác dụng | Tham số hợp lệ |
+| --- | --- | --- |
+| `home()` | Đưa tay máy về tư thế Home sau khi đặt vật. | Không có |
+| `pick(object)` | Gắp một khối từ vị trí hiện tại, kể cả `buffer`. | `red_cube`, `yellow_cube`, `blue_cube` |
+| `place(object, zone)` | Đặt khối đang giữ vào ô còn trống. | Cùng ba tên vật; `zone_a`, `zone_b`, `zone_c` hoặc `buffer` |
+
+`/execute_skill` nhận tên skill và tham số trong `srv/ExecuteSkill.srv`. `scripts/task_validator.py` kiểm tra tên, tham số và thứ tự trước khi `scripts/skill_executor.py` gửi từng bước cho robot. `moveToPose`, `moveLinearToPose` và thao tác gắn/thả trong Gazebo là hàm nội bộ của ba skill trên. Mô hình hiện tại dùng cơ chế gắn vật ảo, nên không có skill `open_gripper()` hoặc `close_gripper()` riêng.

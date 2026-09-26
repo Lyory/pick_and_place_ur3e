@@ -11,6 +11,7 @@
     <include><uri>model://zone_a</uri><name>zone_a</name><pose>0.3 -0.27 0.7425 0 0 0</pose></include>
     <include><uri>model://zone_b</uri><name>zone_b</name><pose>0.3 0.0 0.7425 0 0 0</pose></include>
     <include><uri>model://zone_c</uri><name>zone_c</name><pose>0.3 0.27 0.7425 0 0 0</pose></include>
+    <include><uri>model://buffer</uri><name>buffer</name><pose>0.48 -0.03 0.7425 0 0 0</pose></include>
     <model name="robot_pedestal"><static>true</static><pose>0 0 0.37 0 0 0</pose>
       <link name="link"><collision name="collision"><geometry><cylinder><radius>0.09</radius><length>0.74</length></cylinder></geometry></collision>
       <visual name="visual"><geometry><cylinder><radius>0.09</radius><length>0.74</length></cylinder></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual></link>

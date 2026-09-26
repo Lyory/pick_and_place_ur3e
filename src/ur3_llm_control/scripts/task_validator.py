@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Validate syntax, whitelist, and sequential robot state before execution."""
 import json
+import re
 from pathlib import Path
 import yaml
 from ament_index_python.packages import get_package_share_directory
 
-VALID_SKILLS = {"pick", "place", "home"}
+VALID_SKILLS = {"home", "pick", "place"}
 VALID_OBJECTS = {"red_cube", "yellow_cube", "blue_cube"}
-VALID_ZONES = {"zone_a", "zone_b", "zone_c"}
+VALID_ZONES = {"zone_a", "zone_b", "zone_c", "buffer"}
 TASK_MAP = {
     0: {"zone_a": "red_cube", "zone_b": "yellow_cube", "zone_c": "blue_cube"},
     1: {"zone_a": "red_cube", "zone_b": "blue_cube", "zone_c": "yellow_cube"},
@@ -24,15 +25,47 @@ class ValidationError(Exception):
         super().__init__(message)
 
 
-def student_mapping(config_path=None):
-    path = Path(config_path or (
-        Path(get_package_share_directory("ur3_llm_control")) / "config/student_config.yaml"
-    ))
-    student = yaml.safe_load(path.read_text(encoding="utf-8"))["student"]
-    student_id = str(student.get("id", ""))
-    if len(student_id) < 2 or not student_id[-2:].isdigit():
-        raise ValidationError("INVALID_STUDENT_ID", "Enter your actual student ID in student_config.yaml")
-    return TASK_MAP[int(student_id[-2:]) % 6]
+def student_mapping(config_path=None, *, suffix=None):
+    if suffix is None:
+        path = Path(config_path or (
+            Path(get_package_share_directory("ur3_llm_control")) / "config/student_config.yaml"
+        ))
+        student = yaml.safe_load(path.read_text(encoding="utf-8"))["student"]
+        student_id = str(student.get("id", ""))
+        suffix = student_id[-2:]
+    if not isinstance(suffix, str) or not re.fullmatch(r"[0-9]{2}", suffix):
+        raise ValidationError("INVALID_STUDENT_ID", "Enter a two-digit student ID suffix")
+    return TASK_MAP[int(suffix) % 6]
+
+
+def plan_student_rearrangement(world_state, mapping):
+    """Use the buffer to free a zone when every destination is occupied."""
+    locations = dict(world_state.get("locations", {}))
+    if set(locations) != VALID_OBJECTS or world_state.get("held_object", ""):
+        raise ValidationError("INVALID_STATE", "Expected three unheld cubes")
+    targets = {obj: zone for zone, obj in mapping.items()}
+    if set(targets) != VALID_OBJECTS:
+        raise ValidationError("INVALID_STATE", "Student mapping must assign all cubes")
+    steps = []
+    while any(locations[obj] != targets[obj] for obj in VALID_OBJECTS):
+        occupied = {place: obj for obj, place in locations.items() if place in VALID_ZONES}
+        movable = next((obj for obj in targets
+                        if locations[obj] != targets[obj] and targets[obj] not in occupied), None)
+        if movable is None:
+            if "buffer" in occupied:
+                raise ValidationError("INVALID_STATE", "No free destination or buffer")
+            movable = next(obj for obj in targets if locations[obj] != targets[obj])
+            destination = "buffer"
+        else:
+            destination = targets[movable]
+        steps.extend((
+            {"skill": "pick", "object": movable},
+            {"skill": "place", "object": movable, "zone": destination},
+        ))
+        locations[movable] = destination
+    if steps:
+        steps.append({"skill": "home"})
+    return {"plan": steps}
 
 
 def validate(plan_document, world_state):

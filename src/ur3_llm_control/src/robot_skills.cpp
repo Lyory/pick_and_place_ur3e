@@ -228,7 +228,8 @@ private:
       objects.push_back(tray(name, p));
       if (name == "zone_a") colors.push_back(color(name, 0.60f, 0.50f, 0.72f));
       else if (name == "zone_b") colors.push_back(color(name, 0.36f, 0.68f, 0.62f));
-      else colors.push_back(color(name, 0.82f, 0.57f, 0.35f));
+      else if (name == "zone_c") colors.push_back(color(name, 0.82f, 0.57f, 0.35f));
+      else colors.push_back(color(name, 0.55f, 0.60f, 0.68f));
     }
     for (int attempt = 0; attempt < 30 && rclcpp::ok(); ++attempt) {
       if (scene_.applyCollisionObjects(objects, colors)) return true;
@@ -419,19 +420,7 @@ private:
     move_group_.setPathConstraints(safety_constraints_);
     return result;
   }
-  Result home() {
-    if (nearJoints(home_joints_)) return {"SUCCESS", "Already at upright Home pose"};
-    Result stage = moveToPose(0.25, 0.0, 0.98);
-    if (!stage.ok()) return {stage.status, "Home staging: " + stage.message};
-    move_group_.clearPathConstraints();
-    if (!move_group_.setJointValueTarget(home_joints_)) {
-      move_group_.setPathConstraints(safety_constraints_);
-      return {"PLANNING_FAILED", "Home joint target is invalid"};
-    }
-    Result result = planExecute(true);
-    move_group_.setPathConstraints(safety_constraints_);
-    return result;
-  }
+  // Internal helpers shared by the robot skills.
   bool gazeboAttach(const std::string &name, bool attach, std::string &message,
                     const Point *target = nullptr) {
     if (!attach_client_->wait_for_service(5s)) {
@@ -462,6 +451,20 @@ private:
     auto zone = zones_.at(location);
     zone.z += 0.0225;  // zone half thickness + cube half height
     return zone;
+  }
+  // Robot skills exposed through /execute_skill.
+  Result home() {
+    if (nearJoints(home_joints_)) return {"SUCCESS", "Already at upright Home pose"};
+    Result stage = moveToPose(0.25, 0.0, 0.98);
+    if (!stage.ok()) return {stage.status, "Home staging: " + stage.message};
+    move_group_.clearPathConstraints();
+    if (!move_group_.setJointValueTarget(home_joints_)) {
+      move_group_.setPathConstraints(safety_constraints_);
+      return {"PLANNING_FAILED", "Home joint target is invalid"};
+    }
+    Result result = planExecute(true);
+    move_group_.setPathConstraints(safety_constraints_);
+    return result;
   }
   Result pick(const std::string &name) {
     if (!starts_.count(name)) return {"INVALID_OBJECT", "Unknown object: " + name};

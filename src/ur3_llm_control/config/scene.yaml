@@ -13,6 +13,7 @@ zones:
   zone_a: {x: 0.30, y: -0.27, z: 0.7425}
   zone_b: {x: 0.30, y: 0.00, z: 0.7425}
   zone_c: {x: 0.30, y: 0.27, z: 0.7425}
+  buffer: {x: 0.48, y: -0.03, z: 0.7425}
 cube_size: 0.04
 zone_size: [0.14, 0.14, 0.005]
 zone_wall_thickness: 0.01
