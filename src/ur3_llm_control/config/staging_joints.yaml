@@ -1,0 +1,7 @@
+# Collision-free top-down staging pose; tool0 world z ≈ 0.98 m.
+shoulder_pan_joint: -0.552
+shoulder_lift_joint: -1.904
+elbow_joint: 2.140
+wrist_1_joint: -1.807
+wrist_2_joint: -1.571
+wrist_3_joint: 1.019

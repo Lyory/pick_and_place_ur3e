@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <include><uri>model://sun</uri></include>
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://ur3_task_table</uri><name>table</name><pose>0.43 0.0 0.72 0 0 0</pose></include>
+    <include><uri>model://red_cube</uri><name>red_cube</name><pose>0.45 -0.2 0.76 0 0 0</pose></include>
+    <include><uri>model://yellow_cube</uri><name>yellow_cube</name><pose>0.45 0.1 0.76 0 0 0</pose></include>
+    <include><uri>model://blue_cube</uri><name>blue_cube</name><pose>0.45 0.2 0.76 0 0 0</pose></include>
+    <include><uri>model://zone_a</uri><name>zone_a</name><pose>0.3 -0.27 0.7425 0 0 0</pose></include>
+    <include><uri>model://zone_b</uri><name>zone_b</name><pose>0.3 0.0 0.7425 0 0 0</pose></include>
+    <include><uri>model://zone_c</uri><name>zone_c</name><pose>0.3 0.27 0.7425 0 0 0</pose></include>
+    <model name="robot_pedestal"><static>true</static><pose>0 0 0.37 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.09</radius><length>0.74</length></cylinder></geometry></collision>
+      <visual name="visual"><geometry><cylinder><radius>0.09</radius><length>0.74</length></cylinder></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual></link>
+    </model>
+    <plugin name="ur3_virtual_attachment" filename="libur3_virtual_attachment.so"/>
+  </world>
+</sdf>

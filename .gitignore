@@ -1,0 +1,7 @@
+# ROS/colcon workspace outputs
+build/
+install/
+log/
+**/build/
+**/install/
+**/log/

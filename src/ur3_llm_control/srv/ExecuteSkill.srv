@@ -1,0 +1,7 @@
+string skill
+string object
+string zone
+---
+bool success
+string status
+string message
