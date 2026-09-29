@@ -109,7 +109,7 @@ def main():
         else:
             while rclpy.ok():
                 try:
-                    command = input("\nEnter command or last two digits of student ID (e.g. 23):\n> ").strip()
+                    command = input("\nEnter your command\n> ").strip()
                 except (EOFError, KeyboardInterrupt):
                     break
                 if command:

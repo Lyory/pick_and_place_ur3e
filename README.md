@@ -11,8 +11,10 @@ Workspace ROS 2 cho mô phỏng Universal Robots trong Gazebo Classic và packag
 ## Clone và build
 
 ```bash
-git clone <URL_REPOSITORY> thuc_hanh_tuan2_ws
-cd thuc_hanh_tuan2_ws
+git clone https://github.com/Lyory/pick_and_place_ur3e.git
+
+cd pick_and_place_ur3e/
+
 source /opt/ros/humble/setup.bash
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
@@ -21,9 +23,22 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-Thay `<URL_REPOSITORY>` bằng URL GitHub của repo. Sau khi clone, các thư mục `build/`, `install/` và `log/` được `colcon` tạo lại trên máy của bạn; chúng không cần được đưa lên GitHub.
+## Cài đặt 9router
+
+```bash
+npm install -g 9router
+
+9router
+```
 
 ## Chạy
+
+Sử dụng đồng thời 3 terminal:
+Terminal 1: (9router)
+```bash
+9router --host 127.0.0.1 --port 20128 --no-browser
+```
+Terminal 2: robot và gazebo
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -31,4 +46,10 @@ source install/setup.bash
 ros2 launch ur3_llm_control llm_robot.launch.py
 ```
 
-Xem [hướng dẫn package UR3e](src/ur3_llm_control/README.md) để cấu hình 9Router và chạy task manager. Phần mô phỏng Universal Robots có [hướng dẫn riêng](src/Universal_Robots_ROS2_Gazebo_Simulation/README.md).
+Terminal 3: Nhập lệnh cho robot
+```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 run ur3_llm_control task_manager.py
+```
+
