@@ -13,7 +13,7 @@ Workspace ROS 2 cho mô phỏng Universal Robots trong Gazebo Classic và packag
 ```bash
 git clone https://github.com/Lyory/pick_and_place_ur3e.git
 
-cd pick_and_place_ur3e/
+cd pick_and_place_ur3e/src
 
 source /opt/ros/humble/setup.bash
 rosdep update
@@ -41,6 +41,7 @@ Terminal 1: (9router)
 Terminal 2: robot và gazebo
 
 ```bash
+cd pick_and_place_ur3e/src
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 launch ur3_llm_control llm_robot.launch.py
@@ -48,6 +49,7 @@ ros2 launch ur3_llm_control llm_robot.launch.py
 
 Terminal 3: Nhập lệnh cho robot
 ```bash
+cd pick_and_place_ur3e/src
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 run ur3_llm_control task_manager.py
