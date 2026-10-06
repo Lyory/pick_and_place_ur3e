@@ -55,10 +55,6 @@ Mỗi người dùng cấu hình provider và API key của mình. Repository c�
 
 File `src/.env` được Git theo dõi. Trước khi commit/push, thay key thật lại bằng `abcxyz`.
 
-Task manager tự đọc `src/.env`. Những lần chạy sau không cần nhập lại hoặc export API key; giữ 9Router hoạt động và chạy các terminal bên dưới từ đúng bản clone. Sau khi clone trên máy khác, thực hiện lại bước cấu hình này bằng tài khoản của máy đó.
-
-Nếu gặp `Set ROBOT_LLM_MODEL...`, kiểm tra `ROBOT_LLM_MODEL` trong `src/.env`. Nếu gặp `401 Invalid API key`, kiểm tra `NINEROUTER_API_KEY`. Nếu báo lỗi model/provider, kiểm tra ID model và kết nối provider trong dashboard. Sửa `.env` rồi khởi động lại task manager; không cần build lại chỉ vì đổi cấu hình.
-
 ## Chạy
 
 Sử dụng đồng thời 3 terminal:
