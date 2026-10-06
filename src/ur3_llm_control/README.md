@@ -24,17 +24,16 @@ Kiểm tra `ss -ltnp | grep ':20128'`: địa chỉ lắng nghe phải là `127.
 Sau khi clone, làm theo [hướng dẫn cấu hình LLM trong README chính](../../README.md#cấu-hình-llm-sau-khi-clone-một-lần). Từ thư mục `pick_and_place_ur3e/src`:
 
 ```bash
-cp .env.example .env
 chmod 600 .env
 nano .env
 ```
 
 - Chọn/kết nối **provider** và điền thông tin đăng nhập hoặc API key của provider trong dashboard 9Router.
 - Điền **ID model đầy đủ** của provider vào `ROBOT_LLM_MODEL` trong `.env`.
-- Điền **API key do 9Router tạo** vào `NINEROUTER_API_KEY` trong `.env`.
+- Thay `abcxyz` bằng **API key do 9Router tạo** tại `NINEROUTER_API_KEY` trong `.env`.
 - Giữ `ROBOT_LLM_BASE_URL=http://127.0.0.1:20128/v1` nếu dùng cổng mặc định của dự án.
 
-Task manager tự đọc `.env` khi chạy bằng `ros2 run`; không cần export key trong mỗi terminal. Chạy từ thư mục `src` của bản clone và source đúng `install/setup.bash`. `.env` và `.venv/` được Git bỏ qua; chỉ `.env.example` được chia sẻ. Các giá trị có trong `.env` thay thế giá trị đã export trong terminal. Nếu dùng nhiều workspace, có thể chỉ định file bằng `export ROBOT_LLM_ENV_FILE="/duong/dan/ban-clone/src/.env"`.
+Task manager tự đọc `.env` khi chạy bằng `ros2 run`; không cần export key trong mỗi terminal. Chạy từ thư mục `src` của bản clone và source đúng `install/setup.bash`. `.env` được chia sẻ với key mẫu `abcxyz`; trước khi commit/push, thay key thật lại bằng `abcxyz`. `.venv/` được Git bỏ qua. Các giá trị có trong `.env` thay thế giá trị đã export trong terminal. Nếu dùng nhiều workspace, có thể chỉ định file bằng `export ROBOT_LLM_ENV_FILE="/duong/dan/ban-clone/src/.env"`.
 
 Nếu nhận `Set ROBOT_LLM_MODEL...`, kiểm tra file `.env` và điền ID model. Nếu nhận `401 Invalid API key`, kiểm tra key do 9Router tạo. Nếu nhận lỗi model/provider, kiểm tra ID model và provider đã kết nối trong dashboard. Sau khi sửa cấu hình, khởi động lại task manager.
 

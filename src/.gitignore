@@ -1,2 +1,3 @@
-.env
+# Share .env with a placeholder key; restore abcxyz before committing.
+!.env
 .venv/

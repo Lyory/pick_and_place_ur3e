@@ -25,7 +25,7 @@ source install/setup.bash
 
 ## Cấu hình LLM sau khi clone (một lần)
 
-Mỗi người dùng cấu hình provider và API key của mình. Repository cung cấp file mẫu [`src/.env.example`](src/.env.example); file `src/.env` chứa cấu hình thật được Git bỏ qua.
+Mỗi người dùng cấu hình provider và API key của mình. Repository có sẵn [`src/.env`](src/.env) với model và địa chỉ 9Router đã điền. API key mẫu là `abcxyz`; thay bằng key của bạn trước khi chạy. File có comment giải thích từng mục.
 
 1. Cài và khởi động 9Router trong một terminal riêng:
 
@@ -36,10 +36,9 @@ Mỗi người dùng cấu hình provider và API key của mình. Repository cu
 
 2. Mở [dashboard 9Router](http://127.0.0.1:20128/dashboard). Kết nối provider bạn muốn dùng và nhập API key hoặc đăng nhập tài khoản provider tại dashboard theo phương thức provider hỗ trợ. Sao chép **ID model đầy đủ** và **API key do 9Router tạo**.
 
-3. Trong thư mục `pick_and_place_ur3e/src`, tạo cấu hình cá nhân:
+3. Trong thư mục `pick_and_place_ur3e/src`, mở file cấu hình có sẵn:
 
    ```bash
-   cp .env.example .env
    chmod 600 .env
    nano .env
    ```
@@ -49,14 +48,16 @@ Mỗi người dùng cấu hình provider và API key của mình. Repository cu
    | Biến trong `src/.env` | Giá trị cần điền |
    | --- | --- |
    | `ROBOT_LLM_MODEL` | ID model đầy đủ lấy từ 9Router, gồm tiền tố provider nếu ID có tiền tố. Không điền riêng tên provider. |
-   | `NINEROUTER_API_KEY` | API key do **9Router** tạo; API key của provider được điền trong dashboard ở bước 2. |
+   | `NINEROUTER_API_KEY` | Thay `abcxyz` bằng API key do **9Router** tạo; API key của provider được điền trong dashboard ở bước 2. |
    | `ROBOT_LLM_BASE_URL` | Giữ `http://127.0.0.1:20128/v1` nếu 9Router chạy trên máy này ở cổng 20128. |
 
    Không cần thêm biến `PROVIDER`: 9Router định tuyến theo ID trong `ROBOT_LLM_MODEL`.
 
+File `src/.env` được Git theo dõi. Trước khi commit/push, thay key thật lại bằng `abcxyz`.
+
 Task manager tự đọc `src/.env`. Những lần chạy sau không cần nhập lại hoặc export API key; giữ 9Router hoạt động và chạy các terminal bên dưới từ đúng bản clone. Sau khi clone trên máy khác, thực hiện lại bước cấu hình này bằng tài khoản của máy đó.
 
-Nếu gặp `Set ROBOT_LLM_MODEL...`, kiểm tra đã tạo `src/.env` và điền model chưa. Nếu gặp `401 Invalid API key`, kiểm tra `NINEROUTER_API_KEY`. Nếu báo lỗi model/provider, kiểm tra ID model và kết nối provider trong dashboard. Sửa `.env` rồi khởi động lại task manager; không cần build lại chỉ vì đổi cấu hình.
+Nếu gặp `Set ROBOT_LLM_MODEL...`, kiểm tra `ROBOT_LLM_MODEL` trong `src/.env`. Nếu gặp `401 Invalid API key`, kiểm tra `NINEROUTER_API_KEY`. Nếu báo lỗi model/provider, kiểm tra ID model và kết nối provider trong dashboard. Sửa `.env` rồi khởi động lại task manager; không cần build lại chỉ vì đổi cấu hình.
 
 ## Chạy
 
