@@ -23,13 +23,40 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-## Cài đặt 9router
+## Cấu hình LLM sau khi clone (một lần)
 
-```bash
-npm install -g 9router
+Mỗi người dùng cấu hình provider và API key của mình. Repository cung cấp file mẫu [`src/.env.example`](src/.env.example); file `src/.env` chứa cấu hình thật được Git bỏ qua.
 
-9router
-```
+1. Cài và khởi động 9Router trong một terminal riêng:
+
+   ```bash
+   npm install -g 9router
+   9router --host 127.0.0.1 --port 20128 --no-browser
+   ```
+
+2. Mở [dashboard 9Router](http://127.0.0.1:20128/dashboard). Kết nối provider bạn muốn dùng và nhập API key hoặc đăng nhập tài khoản provider tại dashboard theo phương thức provider hỗ trợ. Sao chép **ID model đầy đủ** và **API key do 9Router tạo**.
+
+3. Trong thư mục `pick_and_place_ur3e/src`, tạo cấu hình cá nhân:
+
+   ```bash
+   cp .env.example .env
+   chmod 600 .env
+   nano .env
+   ```
+
+   Điền theo bảng sau, lưu file rồi thoát trình soạn thảo:
+
+   | Biến trong `src/.env` | Giá trị cần điền |
+   | --- | --- |
+   | `ROBOT_LLM_MODEL` | ID model đầy đủ lấy từ 9Router, gồm tiền tố provider nếu ID có tiền tố. Không điền riêng tên provider. |
+   | `NINEROUTER_API_KEY` | API key do **9Router** tạo; API key của provider được điền trong dashboard ở bước 2. |
+   | `ROBOT_LLM_BASE_URL` | Giữ `http://127.0.0.1:20128/v1` nếu 9Router chạy trên máy này ở cổng 20128. |
+
+   Không cần thêm biến `PROVIDER`: 9Router định tuyến theo ID trong `ROBOT_LLM_MODEL`.
+
+Task manager tự đọc `src/.env`. Những lần chạy sau không cần nhập lại hoặc export API key; giữ 9Router hoạt động và chạy các terminal bên dưới từ đúng bản clone. Sau khi clone trên máy khác, thực hiện lại bước cấu hình này bằng tài khoản của máy đó.
+
+Nếu gặp `Set ROBOT_LLM_MODEL...`, kiểm tra đã tạo `src/.env` và điền model chưa. Nếu gặp `401 Invalid API key`, kiểm tra `NINEROUTER_API_KEY`. Nếu báo lỗi model/provider, kiểm tra ID model và kết nối provider trong dashboard. Sửa `.env` rồi khởi động lại task manager; không cần build lại chỉ vì đổi cấu hình.
 
 ## Chạy
 
@@ -54,4 +81,3 @@ source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 run ur3_llm_control task_manager.py
 ```
-

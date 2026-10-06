@@ -17,7 +17,14 @@ if [[ -f "$private_config" ]]; then
   source "$private_config"
 fi
 
-export ROBOT_LLM_MODEL="${ROBOT_LLM_MODEL:-ag/gemini-3.8-flash}"
+if [[ -z "${ROBOT_LLM_MODEL:-}" ]]; then
+  read -rp 'Full model ID from your 9Router dashboard: ' ROBOT_LLM_MODEL
+  if [[ -z "$ROBOT_LLM_MODEL" ]]; then
+    echo "Model is required. Copy $workspace_src/.env.example to $workspace_src/.env and fill in ROBOT_LLM_MODEL."
+    exit 1
+  fi
+fi
+export ROBOT_LLM_MODEL
 export ROBOT_LLM_BASE_URL="${ROBOT_LLM_BASE_URL:-http://127.0.0.1:20128/v1}"
 
 if [[ -z "${NINEROUTER_API_KEY:-}" ]]; then
