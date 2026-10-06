@@ -20,7 +20,7 @@ fi
 if [[ -z "${ROBOT_LLM_MODEL:-}" ]]; then
   read -rp 'Full model ID from your 9Router dashboard: ' ROBOT_LLM_MODEL
   if [[ -z "$ROBOT_LLM_MODEL" ]]; then
-    echo "Model is required. Copy $workspace_src/.env.example to $workspace_src/.env and fill in ROBOT_LLM_MODEL."
+    echo "Model is required. Fill in ROBOT_LLM_MODEL in $workspace_src/.env with the full model ID from 9Router."
     exit 1
   fi
 fi
